@@ -1,0 +1,28 @@
+#include "photolnterrupter.h"
+
+int initPhotoInterrupter(void)
+{
+
+	if(wiringPiSPISetup(SPI_CHANNEL, SPI_SPEED) == -1) {
+		fprintf(stdout, "wiringPiSPISetup Failed: %s\n", strerror(errno));
+		return 1;
+	}
+
+	printf("Photo Interrupter Initialization\n");
+	pinMode(CS_MCP3208, OUTPUT);
+}
+
+int getPhotoInterrupter(void)
+{
+	int nPhotoChannel = 1;
+	int nPhotoValue = 0;
+
+	nPhotoValue = ReadMcp3208ADC(nPhotoChannel); //sensorRead
+	printf("Photo Interrupter Sensor Value = %u\n", nPhotoValue);
+	
+	if(nPhotoValue>PHOTO_LEVEL) {
+		printf("=== Photo Detected === \n");
+		return 1;
+	}
+	return 0;  
+}

@@ -1,0 +1,176 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+#include "3-AxisDigitalCompass.h"
+#include "photoInterrupter.h"
+#include "vibrationDetection.h"
+#include "BridgeManagement.h"
+
+
+#define BUF_SIZE 9
+#define INIT_VAL_OF_MEM O
+#define NUM_OF_ARGC 2
+#define PROTOCOLJYPE O
+#define NUM_OF_QUEUE 5
+#define DATA_SIZE 1
+
+#define PKT_STX 0x01
+#define PKT_ETX 0x05
+
+#define CMD_SENSOR_REQ 0x10 
+#define CMD_SENSOR_RES 0x90
+
+int getData(vold);
+void error_handling(char *message);
+
+int main(int argc, char *argv[])
+{
+	int serv_sock, clnt_sock;
+	FILE *fp;
+
+	char snd_buf[BUF_SIZE];
+
+	char rcv_buf[BUF_SIZE];
+
+	int read_cnt;
+
+	int readBufSize;
+
+
+	struct sockaddr_in serv_adr, clnt_adr;
+
+	socklen_t clnt_adr_sz;
+
+	int getData_vib = 0;
+	int getData_vib_msb = 0;
+	int getData_vib_lsb = 0;
+	
+	int getData_photo = 0;
+	
+	int getData_reg_x = 0;
+	int getData_reg_z = 0;
+	int getData_reg_y = 0;
+
+	char sign_bit;
+
+
+	printf("===========================================\n");
+	printf("TCP/IP Data Transmission Program - Server\n");
+	printf("===========================================\n\n");
+	//Check port info
+
+	if(argc!=NUM_OF_ARGC){
+		printf("Usage:%s < port> \n",argv[0]);
+		exit(1); 
+	}
+
+//create Socket
+	serv_sock = socket(PF_INET,SOCK_STREAM, PROTOCOL_TYPE);
+
+	if (serv_sock == -1)
+		error_handIing("socket() error");
+	
+	memset(&serv_adr, INIT_VAL_OF_MEM, sizeof(serv_adr));
+
+	serv_adr.sin_family = AF_INET; 			// Address Family : IPv4 Internet Protocal
+	serv_adr.sin_addr.s_addr = htonl(INADDR_ANY); 	// get ip address
+	serv_adr.sin_port = htons(atoi(argv[1]));	 // get port num
+
+//allocate Address to Socket
+
+	if (bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr)) == -1)
+		error_handling("bind() error");
+
+//wait to request Connection
+
+	if (listen(serv_sock, NUM_OF_QUEUE) == -1)
+		error_handling("listen() error");
+
+	clnt_adr_sz = sizeof(clnt,adr);
+
+//accept Connection
+	clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
+	printf("Connected IP : %s\n\n", inet_ntoa(clnt_adr.sin_addr));
+	
+//plus
+	setupWiringPiGpio();
+	
+	initVibrationDetection();
+	initPhotoInterrupter();
+	initDigitalCompass();
+
+	while(1)
+	{
+//read Data
+
+		if(readBufSize = read(clnt_sock, rcv_buf, BUF_SIZE) != -1)
+		{
+	
+	if(rcv_buf[0] == PKT_STX){
+	if(rcv_buf[1] == CMD_SENSOR_REQ){
+	if(rcv_buf[8] == PKT_ETX)
+					{
+		getData_vib = getVibrationDetection();
+		getData_photo = getPhotoInterrupter();
+		getData_reg_x = getDigitalCompass(OUTPUT_X);
+		getData_reg_y = getDigitalCompass(OUTPUT_Y);
+		printf("\n");
+
+	sign _bit = 0;
+
+	if (getData_reg_x < 0 ) {
+		sign _bit |= 0x01;
+	}
+	
+	if (getData_reg_y < 0 ) {
+		sign _bit |= 0x02;
+	}
+
+
+
+
+	getData_vib_lsb = (getData_vib & 0xff);
+	getData_vib_msb = ((getData_vib >> 8) & 0xff);
+
+	snd_buf[0] = PKT_STX;
+	snd_buf[1] = CMD_SENSOR_RES;
+	snd_bufl2] = getData_vib_lsb;
+	snd_buf[3] = getData_vib_msb;
+	snd_buf[4] = getData_photo;
+	snd_buf[5] = getData_reg_x;
+	snd_buf[6] = getData_reg_y;
+	snd_buf[7] = sign _bit;
+	snd_buf[8] = PKT_ETX;
+
+//write Data
+	write(clnt_sock, snd_buf, BUF_SIZE);
+			}
+		}
+	}
+}
+
+else
+{
+ 	write(clnt_sock, snd_buf, BUF_SIZE);
+	break;
+	}
+}
+//close Socket
+close(clnt_sock);
+close(serv_sock);
+printf("Transmission terminated.\n");
+printf(" Disconnected(IP:%s)\n\n", inet_ntoa(clnt_adr.sin_addr));
+return 0;
+}
+
+void error_handling(char *message)
+{
+
+fputs(message, stderr);
+fputc('\n', stderr);
+exit(1);
+}

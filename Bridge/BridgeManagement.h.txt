@@ -1,0 +1,18 @@
+#ifndef _BRIDGEMANAGEMENT_H_
+#define _BRIDGEMANAGEMENT_H_
+
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
+#include <wiringPi.h>
+#include <wiringPiSPI.h>
+
+#define CS_MCP3208	8
+#define SPI_CHANNEL	0
+#define SPI_SPEED	1000000
+
+int setupWiringPiGpio(void);
+int ReadMcp3208ADC(unsigned char adcChannel);
+
+#endif /* _BRIDGEMANAGEMENT_H_ */

@@ -1,0 +1,30 @@
+#ifndef _3AXISDIGITALCOMPASS_H_
+#define _3AXISDIGITALCOMPASS_H_
+
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <stdint.h>
+#include <wiringPi.h>
+#include <wiringPiI2C.h>
+
+#define ADDRESS 0x1E
+
+#define CONFIGURATION_REGISTER_A	0x00
+#define CONFIGURATION_REGISTER_B	0x01
+#define MODE_REGISTER			0x02
+
+#define X_MSB_REGISTER 0x03
+#define X_LSB_REGISTER 0x04
+#define Z_MSB_REGISTER 0x05
+#define Z_LSB_REGISTER 0x06
+#define Y_MSB_REGISTER 0x07
+#define Y_LSB_REGISTER 0x08
+
+enum { OUTPUT_X, OUTPUT_Z, OUTPUT_Y };
+
+int initDigitalCompass(void);
+
+int getDigitalCompass(int16_t outputReg);
+
+#endif /* _3AXISDIGITALCOMPASS_H_ */

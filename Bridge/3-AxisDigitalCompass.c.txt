@@ -1,0 +1,88 @@
+#include "3-AxisDigitalCompass.h"
+
+int g_nCompass;
+
+int initDigitalCompass(void)
+
+{
+
+	if((g_nCompass = wiringPiI2CSetup(ADDRESS)) == -1) {
+		printf("Unable to initialise I2C");
+		return 1;
+
+	}
+
+// int wiringPiI2CWriteReg8 (int fd, int reg, int data);
+
+// 8-average, 15 Hz default, normal measurement
+
+	wiringPiI2CWriteReg8 (g_nCompass, CONFIGURATION_REGISTER_A, 0x70);
+
+// Gain=5, or any other desired gain
+
+	wiringPiI2CWriteReg8 (g_nCompass, CONFIGURATION_REGISTER_B, 0xA0); 
+// Continuous-measurement mode
+
+	wiringPiI2CWriteReg8 (g_nCompass, MODE_REGISTER, 0x00); 
+	delay(6); // Wait 6 ms
+
+	printf("Digital Compass Initialization\n"); 
+	return 0;
+
+}
+
+int getDigitalCompass(int16_t outputReg)
+
+{
+
+	int i;
+
+	uint8_t high[3], low[3];
+
+	int16_t result[3];
+
+// Read all 6 bytes. If gain is changed then this data set is using previous gain
+// int wiringPiI2CReadReg8 (int fd, int reg);
+
+	high[0]=wiringPiI2CReadReg8(g_nCompass, X_MSB_REGISTER); 
+	low[0]=wiringPiI2CReadReg8(g_nCompass, X_LSB_REGISTER);
+
+	high[1]=wiringPiI2CReadReg8(g_nCompass, Z_MSB_REGISTER); 
+	low[1]=wiringPiI2CReadReg8(g_nCompass, Z_LSB_REGISTER);
+
+	high[2]=wiringPiI2CReadReg8(g_nCompass, Y_MSB_REGISTER); 
+	low[2]=wiringPiI2CReadReg8(g_nCompass, Y_LSB_REGISTER);
+
+	for(i = 0; i<3; i++) {
+
+		result[i] = (high[i] <<8) | low[i];
+
+	}
+
+	wiringPiI2CWrite (g_nCompass, 0x03);
+
+	delay(67);	// Wait about 67ms (if 15Hz rate)
+
+	delay(200);
+
+	if (outputReg == OUTPUT_X) { 
+		printf("x = %i, " ,result[0]); 
+		return result[0];
+
+	}
+
+	else if (outputReg == OUTPUT_Z) { 
+		printf("z = %i, " ,result[1]); 
+		return result[1];
+
+	}
+
+	else if (outputReg == OUTPUT_Y) { 
+		printf("y=%i\n" ,result[2]);
+		return result[2];
+
+	}
+
+	return 0;
+
+}

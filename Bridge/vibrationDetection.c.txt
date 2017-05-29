@@ -1,0 +1,34 @@
+#include "vibrationDetection.h"
+
+int initVibrationDetection(void)
+
+{
+
+	if(wiringPiSPISetup(SPI_CHANNEL, SPI_SPEED) == -1) {
+
+		fprintf(stdout, "wiringPiSPISetup Failed: %s\n", strerror(errno)); 
+		return 1;
+
+	}
+
+	printf("Vibration Detection Initialization\n"); 
+	pinMode(CS_MCP3208, OUTPUT);
+	
+	return 0;
+
+}
+
+int getVibrationDetection(void)
+
+{
+
+	int nVibrationChannel = 0; 
+	int nVibrationValue = 0;
+
+	nVibrationValue = ReadMcp3208ADC(nVibrationChannel); //sensorRead 
+
+	printf("Vibration : %d\n", nVibrationValue);
+
+	return nVibrationValue;
+
+}

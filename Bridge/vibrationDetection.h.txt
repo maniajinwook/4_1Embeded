@@ -1,0 +1,19 @@
+#ifndef	_VIBRATIONDETECTION_H_
+#define	_VIBRATIONDETECTION_H_
+
+
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <wiringPi.h>
+#include <wiringPiSPI.h>
+
+
+#define CS_MCP3208	8	//GPIO 8
+#define SPI_CHANNEL	0	//SPI Channel
+#define SPI_SPEED 1000000	//spi speed
+
+int initVibrationDetection(void); 
+int getVibrationDetection(void);
+
+#endif /* _VIBRATIONDETECTION_H_ */	
